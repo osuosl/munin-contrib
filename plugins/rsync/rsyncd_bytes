@@ -31,29 +31,29 @@ fi
 if [ "$1" = "config" ]; then
 	echo 'graph_title Rsync Server Bytes'
         echo 'graph_args --base 1000 -l 0'
-	echo 'graph_order send recv'
+	echo 'graph_order sent recv'
 	echo 'graph_category rsync'
 	echo 'graph_vlabel Rsync Bytes'
-	echo 'send.label Bytes Send'
+	echo 'sent.label Bytes Sent'
 	echo 'recv.label Bytes Recv'
 	exit 0
 fi
 
-send=U
+sent=U
 recv=U
 
 TEMP_FILE=`mktempfile munin-rsync-bytes.XXXXXX`
 
 if [ -n "$TEMP_FILE" -a -f "$TEMP_FILE" ]
 then
-	$LOGTAIL ${RSYNCD_LOG} $STATEFILE | grep ".* Total .* bytes\." > ${TEMP_FILE}
-	send=`grep ' send .* bytes' ${TEMP_FILE} | awk '{s += $10} END { if ( s ) print s ; else print "0" }'`
+	$LOGTAIL ${RSYNCD_LOG} $STATEFILE | grep ".* bytes .* total." > ${TEMP_FILE}
+	sent=`grep ' sent .* bytes' ${TEMP_FILE} | awk '{s += $10} END { if ( s ) print s ; else print "0" }'`
 	recv=`grep ' recv .* bytes' ${TEMP_FILE} | awk '{s += $10} END { if ( s ) print s ; else print "0" }'`
 
 	/bin/rm -f $TEMP_FILE
 fi
 
-echo "send.value ${send}"
+echo "sent.value ${sent}"
 echo "recv.value ${recv}"
 
 
