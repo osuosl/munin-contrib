@@ -1,0 +1,42 @@
+#!/bin/sh
+
+. $MUNIN_LIBDIR/plugins/plugin.sh
+
+if [ "$1" = "autoconfig" ] ; then
+  if [ "$(grep -q CmaTotal /proc/meminfo)" ] ; then
+    echo no
+    exit 0
+  else
+    echo yes
+    exit 0
+  fi
+fi
+
+cma_total_kb="$(grep CmaTotal /proc/meminfo | awk '{print $2}')"
+cma_free_kb="$(grep CmaFree /proc/meminfo | awk '{print $2}')"
+cma_total="$(($cma_total_kb * 1024))"
+cma_free="$(($cma_free_kb * 1024))"
+cma_used="$(($cma_total - $cma_free))"
+
+if [ "$1" = "config" ] ; then
+  echo 'graph_title CMA memory usage'
+  echo 'graph_order cma_used cma_free cma_total'
+  echo "graph_args --base 1024 -l 0 --upper-limit $cma_total"
+  echo 'graph_vlabel Bytes'
+  echo 'graph_category system'
+  echo 'graph_info This graph shows contiguous memory allocate (CMA) usage'
+  echo 'cma_used.label cma_used'
+  echo 'cma_used.draw AREA'
+  echo 'cma_used.info Used CMA memory'
+  echo 'cma_free.label cma_free'
+  echo 'cma_free.draw STACK'
+  echo 'cma_free.info Free CMA memory'
+  echo 'cma_total.label cma_total'
+  echo 'cma_total.draw LINE'
+  echo 'cma_total.info Total CMA memory'
+  exit 0
+fi
+
+echo "cma_used.value $cma_used"
+echo "cma_free.value $cma_free"
+echo "cma_total.value $cma_total"
